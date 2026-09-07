@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LingoShot — learn English by playing</title>
+<meta name="description" content="LingoShot is a mobile game for learning English. Shooting range, word search, idioms, morphemes and narrated stories. 9 interface languages, works offline.">
+
+<!-- Open Graph: nice preview when the link is shared in messengers/social -->
+<meta property="og:title" content="LingoShot — learn English by playing">
+<meta property="og:description" content="Shooting range, word search, idioms, morphemes and stories. Learn English words through play, not by cramming.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Unbounded: geometric display font with a game-like character; Inter for body text -->
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a1512;            /* deep dark green — matches the app's game background */
+  --bg-2:#0f2019;
+  --panel:#12261e;
+  --stroke:#1e3a2e;
+  --fire:#e0632c;          /* action-orange FIRE accent */
+  --fire-2:#ff7a3d;
+  --neon:#39d98a;          /* green "hit / charged" accent */
+  --text:#eaf3ee;
+  --dim:#8fb0a2;
+  --white:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  line-height:1.55;
+  overflow-x:hidden;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative;
+  padding:78px 0 64px;
+  text-align:center;
+  overflow:hidden;
+}
+/* crosshair/target motif in the background — nods to the "shooting range" theme */
+.hero::before{
+  content:"";
+  position:absolute; top:-120px; left:50%; transform:translateX(-50%);
+  width:640px; height:640px; border-radius:50%;
+  background:
+    radial-gradient(circle, transparent 0 38%, rgba(224,99,44,.10) 38% 39%, transparent 39%),
+    radial-gradient(circle, transparent 0 58%, rgba(57,217,138,.08) 58% 59%, transparent 59%),
+    radial-gradient(circle, rgba(224,99,44,.14) 0 1.5%, transparent 1.5%);
+  pointer-events:none;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--stroke);
+  background:rgba(57,217,138,.07);
+  color:var(--neon);
+  font-size:13px;font-weight:600;
+  padding:7px 15px;border-radius:100px;
+  position:relative;
+}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 10px var(--neon)}
+h1{
+  font-family:'Unbounded',sans-serif;
+  font-weight:800;
+  font-size:clamp(38px,7vw,72px);
+  line-height:1.02;
+  letter-spacing:-.02em;
+  margin:22px 0 0;
+  position:relative;
+}
+h1 .shot{color:var(--fire)}
+.tagline{
+  font-size:clamp(17px,2.4vw,21px);
+  color:var(--dim);
+  max-width:560px;margin:20px auto 0;
+  position:relative;
+}
+.cta-row{margin-top:38px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-weight:700;font-size:16px;
+  padding:16px 30px;border-radius:14px;
+  text-decoration:none;transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn-fire{
+  background:linear-gradient(135deg,var(--fire-2),var(--fire));
+  color:#1a0d05;
+  box-shadow:0 8px 28px rgba(224,99,44,.35);
+}
+.btn-fire:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(224,99,44,.5)}
+.btn-ghost{
+  background:transparent;border:1px solid var(--stroke);color:var(--text);
+}
+.btn-ghost:hover{border-color:var(--neon);color:var(--neon)}
+.langline{
+  margin-top:30px;font-size:13.5px;color:var(--dim);position:relative;
+}
+.langline b{color:var(--text);font-weight:600}
+
+/* ---------- STAT STRIP ---------- */
+.stats{
+  display:flex;gap:0;justify-content:center;flex-wrap:wrap;
+  margin:56px auto 0;max-width:760px;
+  border:1px solid var(--stroke);border-radius:16px;
+  background:var(--panel);overflow:hidden;
+}
+.stat{flex:1;min-width:150px;padding:24px 18px;text-align:center;border-right:1px solid var(--stroke)}
+.stat:last-child{border-right:none}
+.stat .num{font-family:'Unbounded',sans-serif;font-weight:800;font-size:30px;color:var(--fire)}
+.stat .lbl{font-size:13px;color:var(--dim);margin-top:4px}
+
+/* ---------- SCREENSHOTS ---------- */
+.shots{
+  display:flex;gap:20px;overflow-x:auto;padding:6px 6px 18px;
+  scroll-snap-type:x proximity;
+}
+.shots img{
+  scroll-snap-align:start;
+  width:240px;flex:0 0 auto;
+  border-radius:22px;border:1px solid var(--stroke);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);
+  display:block;
+}
+
+/* ---------- LANGUAGES ---------- */
+.lang-pills{display:flex;flex-wrap:wrap;gap:12px}
+.pill{
+  display:inline-block;
+  background:var(--panel);border:1px solid var(--stroke);
+  border-radius:100px;padding:10px 22px;
+  font-size:15px;font-weight:600;color:var(--text);
+  transition:border-color .2s ease,color .2s ease;
+}
+.pill:hover{border-color:var(--neon);color:var(--neon)}
+
+/* ---------- MODES ---------- */
+.section{padding:76px 0}
+.section-head{max-width:620px;margin-bottom:44px}
+.section-head h2{
+  font-family:'Unbounded',sans-serif;font-weight:700;
+  font-size:clamp(26px,4vw,40px);letter-spacing:-.01em;
+}
+.section-head p{color:var(--dim);margin-top:12px;font-size:16px}
+
+.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.mode{
+  background:var(--panel);border:1px solid var(--stroke);
+  border-radius:18px;padding:26px;
+  transition:border-color .2s ease, transform .2s ease;
+}
+.mode:hover{border-color:var(--fire);transform:translateY(-3px)}
+.mode .ico{font-size:30px;line-height:1}
+.mode h3{
+  font-family:'Unbounded',sans-serif;font-weight:600;
+  font-size:20px;margin:14px 0 8px;
+}
+.mode p{color:var(--dim);font-size:15px}
+.mode.wide{grid-column:1 / -1}
+
+/* ---------- HOW / VALUE ---------- */
+.value{
+  background:var(--bg-2);border-top:1px solid var(--stroke);border-bottom:1px solid var(--stroke);
+}
+.value-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.val h3{font-family:'Unbounded',sans-serif;font-weight:600;font-size:17px;margin-bottom:8px;color:var(--neon)}
+.val p{color:var(--dim);font-size:15px}
+
+/* ---------- FINAL CTA ---------- */
+.final{text-align:center;padding:88px 0}
+.final h2{
+  font-family:'Unbounded',sans-serif;font-weight:800;
+  font-size:clamp(28px,5vw,48px);letter-spacing:-.02em;
+}
+.final p{color:var(--dim);margin:16px auto 34px;max-width:480px}
+
+footer{
+  border-top:1px solid var(--stroke);
+  padding:34px 0;text-align:center;color:var(--dim);font-size:13.5px;
+}
+footer a{color:var(--dim);text-decoration:underline}
+
+@media(max-width:640px){
+  .modes{grid-template-columns:1fr}
+  .mode.wide{grid-column:auto}
+  .value-grid{grid-template-columns:1fr;gap:20px}
+  .stat{border-right:none;border-bottom:1px solid var(--stroke)}
+  .stat:last-child{border-bottom:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge"><span class="dot"></span>Now on Google Play</span>
+    <h1>English that<br>hooks you<span class="shot">.</span></h1>
+    <p class="tagline">Stop cramming words — shoot them down instead. LingoShot turns learning English into a game you actually want to come back to tomorrow.</p>
+    <div class="cta-row">
+      <!-- REPLACE href with your Google Play link -->
+      <a class="btn btn-fire" href="https://play.google.com/store/apps/details?id=com.lingoshot.app&hl=en-US">Get it on Google Play</a>
+      <a class="btn btn-ghost" href="#modes">See what's inside</a>
+    </div>
+    <p class="langline">🌍 Interface in <b>9 languages</b> · 10,000+ words and counting · works offline</p>
+  </div>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="num">5</div><div class="lbl">game modes</div></div>
+      <div class="stat"><div class="num">10,000+</div><div class="lbl">words to learn</div></div>
+      <div class="stat"><div class="num">9</div><div class="lbl">interface languages</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="section" id="screenshots">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>See it in action</h2>
+      <p>Pick your language, jump into a mode, and start shooting down words — here's what it looks like.</p>
+    </div>
+    <div class="shots">
+      <img src="screenshot-languages.jpg" alt="LingoShot language selection screen — 9 interface languages" loading="lazy">
+      <img src="screenshot-modes.jpg" alt="LingoShot game mode screen — Shooting Tir, Idiom Quiz, Funny Stories, Morph Bubbl" loading="lazy">
+      <img src="screenshot-gameplay.jpg" alt="LingoShot Shooting Tir gameplay — translate the word before it passes" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section" id="languages">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Available in your language</h2>
+      <p>Learn English with the app's interface in your own language — pick one on first launch and switch anytime.</p>
+    </div>
+    <div class="lang-pills">
+      <span class="pill">Deutsch</span>
+      <span class="pill">Español</span>
+      <span class="pill">Français</span>
+      <span class="pill">हिन्दी</span>
+      <span class="pill">Português</span>
+      <span class="pill">Русский</span>
+      <span class="pill">Türkçe</span>
+      <span class="pill">Українська</span>
+      <span class="pill">中文</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="modes">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Five ways to learn</h2>
+      <p>Every mode trains something different — from reaction speed to reading comprehension. It never gets boring.</p>
+    </div>
+    <div class="modes">
+      <article class="mode">
+        <div class="ico">🎯</div>
+        <h3>Shooting Tir</h3>
+        <p>A word flies across the screen — recall the translation and type it before it's gone. Smart spaced repetition locks it into memory.</p>
+      </article>
+      <article class="mode">
+        <div class="ico">🔍</div>
+        <h3>Word Search</h3>
+        <p>Your words are hidden in a grid of letters. Track them all down like a seasoned tracker — a workout for attention and spelling.</p>
+      </article>
+      <article class="mode">
+        <div class="ico">💡</div>
+        <h3>Idiom Quiz</h3>
+        <p>Feel like you're on "Who Wants to Be a Millionaire": pick the right answer and crack the meaning of tricky English expressions.</p>
+      </article>
+      <article class="mode">
+        <div class="ico">🧩</div>
+        <h3>Morph Bubbl</h3>
+        <p>Add a suffix or ending to a word — and one word turns into several. Your vocabulary grows the clever way.</p>
+      </article>
+      <article class="mode wide">
+        <div class="ico">📖</div>
+        <h3>Funny Stories</h3>
+        <p>Short texts you can read and listen to. Hit an unfamiliar word — tap it, see the translation, and send it straight to "Shooting Tir" to learn it.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section value">
+  <div class="wrap">
+    <div class="value-grid">
+      <div class="val">
+        <h3>Recall it, don't cram it</h3>
+        <p>Words pop up against the clock — that's what makes them stick, instead of fading by morning.</p>
+      </div>
+      <div class="val">
+        <h3>At your own pace</h3>
+        <p>Nobody's rushing you. A couple of minutes in line is already progress.</p>
+      </div>
+      <div class="val">
+        <h3>Always with you</h3>
+        <p>Works offline — on the subway, on a flight, anywhere. No internet needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>Ready to start?</h2>
+    <p>Your first words are free, no sign-up needed. Install it and play for a couple of minutes right now.</p>
+    <div class="cta-row">
+      <!-- REPLACE href with your Google Play link -->
+      <a class="btn btn-fire" href="https://play.google.com/store/apps/details?id=com.lingoshot.app&hl=en-US">Get it on Google Play</a>
+      <!-- Telegram: replace href or remove this block if you don't need the channel -->
+      <a class="btn btn-ghost" href="https://t.me/lingoshotapp">Our Telegram</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    LingoShot © 2026 · Learn English by playing<br>
+    <a href="privacy.html">Privacy Policy</a>
+  </div>
+</footer>
+
+</body>
+</html>
